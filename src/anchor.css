@@ -1,0 +1,218 @@
+/*
+ * CSS Anchor Positioning: learning file
+ * --------------------------------------
+ * Tailwind handles the *look* (colors, spacing, fonts) in the JSX.
+ * Everything that *positions* an element lives here in plain CSS.
+ *
+ * The core idea takes two steps:
+ *   1. Give an element a name:          anchor-name: --something;
+ *   2. Tether another element to it:    position-anchor: --something;
+ *      (the tethered element must be absolutely or fixed positioned)
+ */
+
+/* =========================================================
+ * Demo 1: position-area
+ * The easiest way to place something. Think of a 3×3 grid
+ * around the anchor, with the anchor in the middle cell, and
+ * choose the cell to drop the element into.
+ *
+ *     top left    | top          | top right
+ *     ------------+--------------+------------
+ *     left        |   [anchor]   | right
+ *     ------------+--------------+------------
+ *     bottom left | bottom       | bottom right
+ * ========================================================= */
+
+.tooltip-anchor {
+  anchor-name: --tooltip-anchor;
+}
+
+.tooltip {
+  position: absolute;
+  position-anchor: --tooltip-anchor;
+  position-area: top; /* try: bottom, right, top right, left… */
+  margin-bottom: 0.5rem; /* gap between the tooltip and the anchor */
+
+  display: none;
+}
+
+.tooltip-anchor:hover + .tooltip,
+.tooltip-anchor:focus-visible + .tooltip {
+  display: block;
+}
+
+/* =========================================================
+ * Demo 2: anchor() and anchor-size()
+ * For precise control, use the anchor's edges directly in the
+ * inset properties (top / right / bottom / left).
+ *
+ *   anchor(bottom)      → the y-coordinate of the anchor's bottom edge
+ *   anchor(left)        → the x-coordinate of the anchor's left edge
+ *   anchor-size(width)  → the anchor's width
+ * ========================================================= */
+
+.menu-button {
+  anchor-name: --menu-button;
+}
+
+.menu {
+  /* A popover is already `position: fixed` and sits in the top layer. */
+  position-anchor: --menu-button;
+  /* position-anchor: auto; */
+
+  /* Reset the default popover styles, which center it on screen. */
+  inset: auto;
+  margin: 0;
+
+  bottom: anchor(top); /* the menu's top edge meets the button's bottom edge */
+  /* left: anchor(left); the left edges line up */
+  /* right: anchor(left); */
+  /* bottom: anchor(top); */
+  left: anchor(right);
+  margin-top: 0.25rem;
+  min-width: anchor-size(width); /* at least as wide as the button */
+}
+
+/* =========================================================
+ * Demo 3: position-try-fallbacks
+ * When the preferred position would overflow, the browser
+ * tries the fallbacks in order.
+ *
+ *   flip-block   → mirror top ↔ bottom (margins flip too)
+ *   flip-inline  → mirror left ↔ right
+ * ========================================================= */
+
+.scroll-area {
+  /* The containing block: overflow is checked against its edges.
+     The tooltip sits *outside* the scrolling box but inside this
+     wrapper, so it isn't clipped and it flips at the visible edge.
+     (Inside the scroller, it would be checked against the whole
+     scrollable content and never flip.) */
+  position: relative;
+}
+
+.flip-anchor {
+  anchor-name: --flip-anchor;
+}
+
+.flip-tip {
+  position: absolute;
+  position-anchor: --flip-anchor;
+  position-area: top;
+  margin-bottom: 0.5rem;
+
+  position-try-fallbacks: flip-block, flip-inline; /* no room above? go below */
+}
+
+/* =========================================================
+ * Demo 4: @position-try
+ * When flip-* isn't enough, define your own fallback.
+ * A @position-try block is a named set of position
+ * declarations. When it's chosen, they replace the
+ * element's own values.
+ * ========================================================= */
+
+.try-area {
+  /* The containing block. Overflow is checked against its edges.
+     (It sits inside the resizable box because that box scrolls.
+     See the note in Demo 3.) */
+  position: relative;
+}
+
+.try-anchor {
+  anchor-name: --try-anchor;
+}
+
+.try-tip {
+  position: absolute;
+  position-anchor: --try-anchor;
+  position-area: right; /* preferred: to the right */
+  margin-left: 0.5rem;
+
+  position-try-fallbacks: --below; /* no room on the right? use --below */
+}
+
+@position-try --below {
+  position-area: bottom;
+  margin: 0.5rem 0 0; /* also reset margin-left, or it would stay */
+}
+
+/* =========================================================
+ * Demo 5: Practice
+ * Your turn. Make the tooltip follow the button, then drag
+ * the box's corner to test your fallbacks.
+ *
+ * Ideas to try:
+ *   - anchor-name / position-anchor
+ *   - position-area, or anchor() in top / left
+ *   - position-try-fallbacks with flip-block / flip-inline
+ *   - your own @position-try
+ * ========================================================= */
+
+.practice-area {
+  /* Already set up: the containing block. Overflow is checked
+     against its edges. (See the note in Demo 3.) */
+  position: relative;
+}
+
+.practice-anchor {
+    anchor-name: --practice-anchor
+}
+
+.practice-tip {
+    position: absolute;
+    position-anchor: --practice-anchor;
+    position-area: right;
+    position-try-fallbacks: 
+    --practice-anchor-bottom;
+
+    margin-inline-start: .5rem;
+}
+
+@position-try --practice-anchor-bottom {
+    position-area: bottom;
+    margin-inline-start: 0;
+    margin-block-start: 0.5rem;
+    min-width: anchor-size(width);
+    text-align: center;
+}
+
+/* =========================================================
+ * Demo 6: Popover practice
+ * Your turn. Make the popover open next to its button.
+ *
+ * Starting point: a popover is already `position: fixed` with
+ * `inset: 0`. Tailwind's preflight sets `margin: 0`, so it
+ * opens in the top-left corner of the window.
+ *
+ * Ideas to try:
+ *   - position-anchor: an anchor-name, or `auto` (implicit anchor)
+ *   - reset `inset` first, then anchor() in top / left
+ *   - or position-area instead of anchor()
+ *   - anchor-size() to match the button's width
+ *   - position-try-fallbacks: the boundary is the viewport, so
+ *     scroll until the button is near the bottom of the window
+ * ========================================================= */
+
+.practice-popover-button {
+    anchor-name: --practice-demo-6
+}
+
+.practice-popover {
+    position-anchor: --practice-demo-6;
+    inset: auto;
+    position-area: bottom;
+    margin-block-start: 0.5rem;
+    position-try-fallbacks: flip-block;
+}
+
+/* Show a warning in browsers without support. */
+.no-support {
+  display: none;
+}
+
+@supports not (anchor-name: --x) {
+  .no-support {
+    display: block;
+  }
+}

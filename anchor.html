@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Anchor Positioning Cheat Sheet</title>
+
+  <!--
+    Page look: colors, spacing, type.
+    Nothing in this block positions an anchored element.
+  -->
+  <style>
+    :root {
+      color-scheme: dark; /* dark scrollbars, resize handle, and popover defaults */
+
+      --bg: #0b0f17;
+      --panel: #121826;
+      --code-bg: #0a0d14;
+      --border: #263044;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #a5b4fc;
+      --button: #4f46e5;
+      --green: #059669;
+      --tip-bg: #f1f5f9;
+      --tip-text: #0f172a;
+      --warn-bg: #422006;
+      --warn-text: #fde68a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: 3rem 1rem 6rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+    }
+
+    h2 {
+      margin: 4rem 0 0.5rem;
+      font-size: 1.25rem;
+    }
+
+    h3 {
+      margin: 1.5rem 0 0.25rem;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    p,
+    li {
+      color: var(--muted);
+    }
+
+    ul {
+      padding-left: 1.25rem;
+    }
+
+    code {
+      font: 0.875em/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--accent);
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 0;
+      padding: 1rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+    }
+
+    pre code {
+      color: var(--text);
+    }
+
+    .demo {
+      margin: 1rem 0;
+      padding: 1.5rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+    }
+
+    .demo-1 {
+      padding-top: 4rem; /* room for the tooltip above the button */
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      border: 0;
+      border-radius: 0.5rem;
+      background: var(--button);
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      color: white;
+    }
+
+    .tip {
+      margin: 0;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.25rem;
+      background: var(--tip-bg);
+      color: var(--tip-text);
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+
+    .menu-button {
+      width: 14rem;
+      text-align: left;
+    }
+
+    .menu {
+      padding: 0.25rem;
+      list-style: none;
+      background: #1a2233;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 30px rgb(0 0 0 / 0.5);
+    }
+
+    .menu li {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+      color: var(--text);
+    }
+
+    .menu li:hover {
+      background: #2a3650;
+    }
+
+    .scroller {
+      height: 12rem;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--code-bg);
+      text-align: center;
+    }
+
+    .scroller-content {
+      padding: 8rem 0 12rem;
+    }
+
+    .resizable {
+      width: 100%;
+      min-width: 12rem;
+      padding: 1rem;
+      resize: horizontal;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--code-bg);
+    }
+
+    .try-area {
+      height: 6rem;
+      text-align: center;
+    }
+
+    .no-support {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: var(--warn-bg);
+      color: var(--warn-text);
+    }
+  </style>
+
+  <!--
+    CSS Anchor Positioning: everything that positions an element.
+    Same rules as src/anchor.css.
+
+    The core idea takes two steps:
+      1. Give an element a name:          anchor-name: --something;
+      2. Tether another element to it:    position-anchor: --something;
+         (the tethered element must be absolutely or fixed positioned)
+  -->
+  <style>
+    /* =========================================================
+     * Demo 1: position-area
+     * Think of a 3×3 grid around the anchor, with the anchor in
+     * the middle cell, and choose the cell to drop the element into.
+     *
+     *     top left    | top          | top right
+     *     ------------+--------------+------------
+     *     left        |   [anchor]   | right
+     *     ------------+--------------+------------
+     *     bottom left | bottom       | bottom right
+     * ========================================================= */
+
+    .tooltip-anchor {
+      anchor-name: --tooltip-anchor;
+    }
+
+    .tooltip {
+      position: absolute;
+      position-anchor: --tooltip-anchor;
+      position-area: top; /* try: bottom, right, top right, left… */
+      margin-bottom: 0.5rem; /* gap between the tooltip and the anchor */
+
+      display: none;
+    }
+
+    .tooltip-anchor:hover + .tooltip,
+    .tooltip-anchor:focus-visible + .tooltip {
+      display: block;
+    }
+
+    /* =========================================================
+     * Demo 2: anchor() and anchor-size()
+     * Use the anchor's edges directly in the inset properties.
+     *
+     *   anchor(bottom)      → the y-coordinate of the anchor's bottom edge
+     *   anchor(left)        → the x-coordinate of the anchor's left edge
+     *   anchor-size(width)  → the anchor's width
+     * ========================================================= */
+
+    .menu-button {
+      anchor-name: --menu-button;
+    }
+
+    .menu {
+      /* A popover is already `position: fixed` and sits in the top layer. */
+      position-anchor: --menu-button;
+
+      /* Reset the default popover styles, which center it on screen. */
+      inset: auto;
+      margin: 0;
+
+      top: anchor(bottom); /* the menu's top edge meets the button's bottom edge */
+      left: anchor(left); /* the left edges line up */
+      margin-top: 0.25rem;
+      min-width: anchor-size(width); /* at least as wide as the button */
+    }
+
+    /* =========================================================
+     * Demo 3: position-try-fallbacks
+     * When the preferred position would overflow, the browser
+     * tries the fallbacks in order.
+     *
+     *   flip-block   → mirror top ↔ bottom (margins flip too)
+     *   flip-inline  → mirror left ↔ right
+     * ========================================================= */
+
+    .scroll-area {
+      /* The containing block: overflow is checked against its edges.
+         The tooltip sits *outside* the scrolling box but inside this
+         wrapper, so it isn't clipped and it flips at the visible edge. */
+      position: relative;
+    }
+
+    .flip-anchor {
+      anchor-name: --flip-anchor;
+    }
+
+    .flip-tip {
+      position: absolute;
+      position-anchor: --flip-anchor;
+      position-area: top;
+      margin-bottom: 0.5rem;
+
+      position-try-fallbacks: flip-block; /* no room above? go below */
+    }
+
+    /* =========================================================
+     * Demo 4: @position-try
+     * A named set of position declarations. When it's chosen,
+     * its values replace the element's own values.
+     * ========================================================= */
+
+    .try-area {
+      /* The containing block. It sits inside the resizable box
+         because that box scrolls (see Demo 3). */
+      position: relative;
+    }
+
+    .try-anchor {
+      anchor-name: --try-anchor;
+    }
+
+    .try-tip {
+      position: absolute;
+      position-anchor: --try-anchor;
+      position-area: right; /* preferred: to the right */
+      margin-left: 0.5rem;
+
+      position-try-fallbacks: --below; /* no room on the right? use --below */
+    }
+
+    @position-try --below {
+      position-area: bottom;
+      margin: 0.5rem 0 0; /* also reset margin-left, or it would stay */
+    }
+
+    /* Show a warning in browsers without support. */
+    .no-support {
+      display: none;
+    }
+
+    @supports not (anchor-name: --x) {
+      .no-support {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CSS Anchor Positioning</h1>
+    <p>
+      Tether one element to another using only CSS. First give an element a name with
+      <code>anchor-name: --x</code>. Then point an absolutely or fixed positioned element at it with
+      <code>position-anchor: --x</code>.
+    </p>
+
+    <p class="no-support">Your browser doesn't support CSS Anchor Positioning yet.</p>
+
+    <!-- 1. position-area -->
+    <section>
+      <h2>1. position-area</h2>
+      <p>
+        The simplest option. Pick a cell of the 3×3 grid around the anchor, and the element goes there.
+      </p>
+
+      <div class="demo demo-1">
+        <button class="tooltip-anchor">Hover me</button>
+        <p class="tooltip tip">I'm anchored to the button</p>
+      </div>
+
+<pre><code>.tooltip-anchor { anchor-name: --tooltip-anchor; }
+
+.tooltip {
+  position: absolute;               /* required */
+  position-anchor: --tooltip-anchor;
+  position-area: top;               /* bottom, right, top right, … */
+  margin-bottom: 0.5rem;            /* gap */
+}</code></pre>
+
+      <h3>Watch out</h3>
+      <ul>
+        <li>
+          The anchored element must be <code>position: absolute</code> or <code>fixed</code>.
+          Otherwise every anchor property is ignored.
+        </li>
+      </ul>
+    </section>
+
+    <!-- 2. anchor() + anchor-size() -->
+    <section>
+      <h2>2. anchor() + anchor-size()</h2>
+      <p>
+        For precise control, use <code>anchor(&lt;edge&gt;)</code> in <code>top</code> / <code>right</code> /
+        <code>bottom</code> / <code>left</code>, and <code>anchor-size(&lt;dimension&gt;)</code> in sizes.
+      </p>
+
+      <div class="demo">
+        <button popovertarget="menu" class="menu-button">Open menu ▾</button>
+        <ul id="menu" popover="auto" class="menu">
+          <li>Profile</li>
+          <li>Settings</li>
+          <li>Sign out</li>
+        </ul>
+      </div>
+
+<pre><code>.menu-button { anchor-name: --menu-button; }
+
+.menu {                             /* popover: already position: fixed */
+  position-anchor: --menu-button;
+  inset: auto;                      /* undo the UA centering */
+  margin: 0;
+  top: anchor(bottom);              /* menu top = button bottom */
+  left: anchor(left);               /* left edges line up */
+  min-width: anchor-size(width);    /* at least as wide as the button */
+}</code></pre>
+
+      <h3>Watch out</h3>
+      <ul>
+        <li>
+          Popovers get <code>inset: 0; margin: auto</code> from the UA stylesheet, which centers them.
+          Reset both, or your <code>top</code> / <code>left</code> fight with them.
+        </li>
+        <li>
+          <code>popovertarget</code> handles behavior (toggle, light dismiss, a11y).
+          <code>anchor-name</code> / <code>position-anchor</code> handle layout.
+        </li>
+        <li>
+          <code>position-anchor: auto</code> uses the popover's implicit anchor (the invoking button).
+          Leaving <code>position-anchor</code> unset does <em>not</em> (verified in Chrome 156).
+        </li>
+      </ul>
+    </section>
+
+    <!-- 3. position-try-fallbacks -->
+    <section>
+      <h2>3. position-try-fallbacks</h2>
+      <p>
+        Scroll down until the anchor reaches the top edge of the box. The tooltip runs out of room
+        above and flips below the anchor.
+      </p>
+
+      <div class="demo">
+        <div class="scroll-area">
+          <div class="scroller">
+            <div class="scroller-content">
+              <span class="flip-anchor badge" style="background: var(--green)">Anchor</span>
+            </div>
+          </div>
+          <span class="flip-tip tip">I flip when there's no room</span>
+        </div>
+      </div>
+
+<pre><code>.scroll-area { position: relative; }   /* non-scrolling wrapper */
+
+.flip-tip {                             /* sibling of the scroller */
+  position: absolute;
+  position-anchor: --flip-anchor;
+  position-area: top;
+  margin-bottom: 0.5rem;
+  position-try-fallbacks: flip-block;   /* no room above? go below */
+}</code></pre>
+
+      <h3>Watch out</h3>
+      <ul>
+        <li>
+          If the tooltip sits <em>inside</em> the scroll container, overflow is checked against the whole
+          scrollable content. The tooltip gets clipped and never flips. Put it outside the scroller as a
+          sibling, inside a non-scrolling <code>position: relative</code> wrapper.
+        </li>
+        <li>
+          <code>flip-block</code> also mirrors margins (<code>margin-bottom</code> becomes
+          <code>margin-top</code>). A plain <code>position-try-fallbacks: bottom</code> doesn't.
+        </li>
+        <li>
+          <code>flip-inline</code> does nothing for <code>position-area: top</code>, because a centered
+          position mirrors to itself.
+        </li>
+        <li>
+          <code>flip-block, flip-inline</code> (comma) means two separate options.
+          <code>flip-block flip-inline</code> (no comma) means one combined diagonal flip.
+        </li>
+      </ul>
+    </section>
+
+    <!-- 4. @position-try -->
+    <section>
+      <h2>4. @position-try</h2>
+      <p>
+        When <code>flip-*</code> isn't enough, define your own fallback. Drag the bottom-right corner to
+        make the box narrower. The tooltip moves below the anchor.
+      </p>
+
+      <div class="demo">
+        <div class="resizable">
+          <div class="try-area">
+            <span class="try-anchor badge" style="background: var(--button)">Anchor</span>
+            <span class="try-tip tip">Tooltip</span>
+          </div>
+        </div>
+      </div>
+
+<pre><code>.try-tip {
+  position: absolute;
+  position-anchor: --try-anchor;
+  position-area: right;             /* preferred */
+  margin-left: 0.5rem;
+  position-try-fallbacks: --below;
+}
+
+@position-try --below {
+  position-area: bottom;
+  margin: 0.5rem 0 0;               /* reset margin-left too */
+}</code></pre>
+
+      <h3>Watch out</h3>
+      <ul>
+        <li>
+          <code>resize</code> needs <code>overflow: auto</code>, which makes the box a scroll container
+          (same problem as Demo 3). Use a non-scrolling inner <code>position: relative</code> div as the
+          containing block, and give it a height. Otherwise <code>--below</code> also overflows, and the
+          browser falls back to the original position.
+        </li>
+        <li>
+          <code>@position-try</code> only replaces the properties it declares, so reset
+          <code>margin-left</code> explicitly.
+        </li>
+      </ul>
+    </section>
+
+    <!-- Tailwind -->
+    <section>
+      <h2>Tailwind</h2>
+      <p>
+        Tailwind 4.3.3 has no anchor utilities. Arbitrary values compile fine:
+        <code>[anchor-name:--x]</code>, <code>[position-anchor:--x]</code>,
+        <code>top-[anchor(bottom)]</code>.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
